@@ -36,8 +36,8 @@ async def get_verified_metadata(
     verified = verifier.verify(
         metadata_bytes,
         # bytes work fine here, ignore the error
-        x509_cert=pubkey_bytes, # ty: ignore[invalid-argument-type]
-        expect_config=config
+        x509_cert=pubkey_bytes,  # ty: ignore[invalid-argument-type]
+        expect_config=config,
     )
     if isinstance(verified, list):
         raise ValueError(f"Got a list from XMLVerifier: {verified}")

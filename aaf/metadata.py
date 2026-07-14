@@ -113,7 +113,9 @@ def get_aaf_metadata(verified_xml: _Element) -> AafMetadata:
         logger.warning(f"Duplicate entity IDs found: {domain_map_result.errors}")
     expiry: str | None = verified_xml.get("validUntil")
     if expiry is None:
-        raise ValueError("Metadata does not contain a validUntil attribute, can't parse expiry date")
+        raise ValueError(
+            "Metadata does not contain a validUntil attribute, can't parse expiry date"
+        )
     return AafMetadata(
         expires_at=datetime.fromisoformat(expiry),
         providers=provider_info,
