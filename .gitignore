@@ -8,7 +8,8 @@ wheels/
 
 # Virtual environments
 .venv
-
+# Notebooks for testing things out
+notebooks/
 # Secrets/Environment config
 .env
 

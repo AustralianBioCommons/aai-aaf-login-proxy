@@ -29,3 +29,6 @@ dev = [
 
 [tool.marimo.language_servers.pylsp]
 enabled = true               # Enable/disable pylsp
+
+[tool.ty.src]
+exclude = ["notebooks"]
