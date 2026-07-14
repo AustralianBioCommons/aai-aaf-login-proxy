@@ -1,3 +1,4 @@
+from datetime import datetime
 from collections import defaultdict
 from typing import Annotated
 
@@ -110,9 +111,11 @@ def get_aaf_metadata(verified_xml: _Element) -> AafMetadata:
     domain_map_result = get_domain_entity_map(provider_info)
     if domain_map_result.errors:
         logger.warning(f"Duplicate entity IDs found: {domain_map_result.errors}")
-    expiry = verified_xml.get("validUntil")
+    expiry: str | None = verified_xml.get("validUntil")
+    if expiry is None:
+        raise ValueError("Metadata does not contain a validUntil attribute, can't parse expiry date")
     return AafMetadata(
-        expires_at=expiry,
+        expires_at=datetime.fromisoformat(expiry),
         providers=provider_info,
         domain_map=domain_map_result.domain_map,
         errors=domain_map_result.errors,

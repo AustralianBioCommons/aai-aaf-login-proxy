@@ -24,6 +24,7 @@ dev = [
     "pre-commit>=4.6.0",
     "ruff>=0.15.21",
     "ty>=0.0.59",
+    "types-lxml>=2026.2.16",
 ]
 
 [tool.marimo.language_servers.pylsp]
