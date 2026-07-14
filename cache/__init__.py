@@ -30,9 +30,13 @@ async def update_metadata_cache():
     connection = valkey.Valkey(host=settings.valkey_host, port=settings.valkey_port)
 
     now = datetime.now(UTC)
-    metadata_xml = await get_verified_metadata(settings.aaf_metadata_url, settings.aaf_pubkey_url)
+    metadata_xml = await get_verified_metadata(
+        settings.aaf_metadata_url, settings.aaf_pubkey_url
+    )
     metadata = get_aaf_metadata(metadata_xml)
-    cache_data = MetadataCache(domain_map=metadata.domain_map, updated_at=now, expires_at=metadata.expires_at)
+    cache_data = MetadataCache(
+        domain_map=metadata.domain_map, updated_at=now, expires_at=metadata.expires_at
+    )
     logger.info("Updating metadata cache")
     await connection.set(METADATA_CACHE_KEY, cache_data.model_dump_json())
 
@@ -46,7 +50,3 @@ async def get_metadata_cache(connection: valkey.Valkey) -> MetadataCache | None:
     if now > parsed.expires_at:
         raise ExpiredMetadataError(f"Cached metadata expired at {parsed.expires_at}")
     return parsed
-
-
-
-

@@ -1,6 +1,5 @@
 import time
 
-import uvicorn
 from starlette.requests import Request
 
 from fastapi import FastAPI
@@ -19,6 +18,7 @@ async def lifespan(app: FastAPI):
         logger.info("Shutting down scheduler...")
         scheduler.shutdown(wait=False)
 
+
 app = FastAPI(lifespan=lifespan)
 
 
@@ -30,5 +30,7 @@ async def log_requests(request: Request, call_next):
     start_time = time.perf_counter()
     response = await call_next(request)
     response_time = time.perf_counter() - start_time
-    logger.info(f"{request.method} {request.url.path} {response.status_code} {response_time:.3f}s")
+    logger.info(
+        f"{request.method} {request.url.path} {response.status_code} {response_time:.3f}s"
+    )
     return response

@@ -21,13 +21,16 @@ def _single_string_validator(value: str | list[str]) -> str:
             raise ValueError(f"Expected a single string, got {value}")
     return value
 
+
 SingleString = Annotated[str, BeforeValidator(_single_string_validator)]
+
 
 class AafMetadata(BaseModel):
     expires_at: AwareDatetime
     providers: dict[str, AafProvider]
     domain_map: dict[str, str]
     errors: dict[str, str]
+
 
 class AafProvider(BaseModel):
     entity_id: SingleString
@@ -40,8 +43,10 @@ class DomainMapResult(BaseModel):
     """
     Returned by get_domain_entity_map
     """
+
     domain_map: dict[str, str]
     errors: dict[str, str]
+
 
 def get_identity_providers(root: _Element) -> list[etree.Element]:
     """
@@ -61,10 +66,10 @@ def get_provider_info(idp: etree.Element) -> AafProvider:
         "organization_display_name": "string(./md:Organization/md:OrganizationDisplayName[@xml:lang='en'])",
         "idp_display_name": "string(./md:IDPSSODescriptor/md:Extensions/mdui:UIInfo/mdui:DisplayName[@xml:lang='en'])",
     }
-    values = {key: idp.xpath(path, namespaces=NAMESPACES)
-              for key, path in paths.items()}
+    values = {
+        key: idp.xpath(path, namespaces=NAMESPACES) for key, path in paths.items()
+    }
     return AafProvider(**values)
-
 
 
 def get_domain_entity_map(providers: dict[str, AafProvider]) -> DomainMapResult:
@@ -110,5 +115,5 @@ def get_aaf_metadata(verified_xml: _Element) -> AafMetadata:
         expires_at=expiry,
         providers=provider_info,
         domain_map=domain_map_result.domain_map,
-        errors=domain_map_result.errors
+        errors=domain_map_result.errors,
     )

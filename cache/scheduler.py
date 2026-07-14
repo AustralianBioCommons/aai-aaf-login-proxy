@@ -22,7 +22,7 @@ def setup_scheduler() -> AsyncIOScheduler:
         id="update_metadata_cache",
         replace_existing=True,
         coalesce=True,
-        max_instances=1
+        max_instances=1,
     )
     scheduler.start()
     return scheduler

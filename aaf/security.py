@@ -9,7 +9,9 @@ from signxml import XMLVerifier, SignatureConfiguration
 from aaf.xml import NAMESPACES
 
 
-async def get_metadata_and_pubkey(metadata_url: str, pubkey_url: str) -> tuple[bytes, bytes]:
+async def get_metadata_and_pubkey(
+    metadata_url: str, pubkey_url: str
+) -> tuple[bytes, bytes]:
     async with httpx.AsyncClient(verify=True) as client:
         metadata_response, pubkey_response = await asyncio.gather(
             client.get(metadata_url),
@@ -21,15 +23,19 @@ async def get_metadata_and_pubkey(metadata_url: str, pubkey_url: str) -> tuple[b
 
 
 async def get_verified_metadata(
-        metadata_url: str,
-        pubkey_url: str,
+    metadata_url: str,
+    pubkey_url: str,
 ) -> _Element:
     logger.info("Fetching metadata and public key...")
-    metadata_bytes, pubkey_bytes = await get_metadata_and_pubkey(metadata_url, pubkey_url)
+    metadata_bytes, pubkey_bytes = await get_metadata_and_pubkey(
+        metadata_url, pubkey_url
+    )
     verifier = XMLVerifier()
     config = SignatureConfiguration(location="./", expect_references=1)
     logger.info("Verifying metadata...")
-    verified = verifier.verify(metadata_bytes, x509_cert=pubkey_bytes, expect_config=config)
+    verified = verifier.verify(
+        metadata_bytes, x509_cert=pubkey_bytes, expect_config=config
+    )
     logger.info("Metadata verified")
 
     verified_root = verified.signed_xml
@@ -49,4 +55,3 @@ async def get_verified_metadata(
         if expires_at <= datetime.now(timezone.utc):
             raise ValueError(f"Metadata expired at {valid_until}")
     return verified_root
-
