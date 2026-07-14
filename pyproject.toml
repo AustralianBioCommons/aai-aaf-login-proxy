@@ -21,6 +21,9 @@ dependencies = [
 dev = [
     "marimo[lsp]>=0.23.13",
     "polars[excel]>=1.42.1",
+    "pre-commit>=4.6.0",
+    "ruff>=0.15.21",
+    "ty>=0.0.59",
 ]
 
 [tool.marimo.language_servers.pylsp]
