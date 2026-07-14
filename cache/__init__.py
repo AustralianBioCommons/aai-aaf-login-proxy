@@ -22,8 +22,12 @@ class MetadataCache(BaseModel):
 
 
 async def update_metadata_cache():
+    """
+    Fetch metadata from AAF and store in cache. Intended to be run via the scheduler,
+    so intentionally has no arguments.
+    """
     settings = AppConfig()
-    connection = valkey.Valkey(host=settings.valkey_host, port=6379)
+    connection = valkey.Valkey(host=settings.valkey_host, port=settings.valkey_port)
 
     now = datetime.now(UTC)
     metadata_xml = await get_verified_metadata(settings.aaf_metadata_url, settings.aaf_pubkey_url)
@@ -33,7 +37,7 @@ async def update_metadata_cache():
     await connection.set(METADATA_CACHE_KEY, cache_data.model_dump_json())
 
 
-async def get_metadata_cache(connection: valkey.Valkey):
+async def get_metadata_cache(connection: valkey.Valkey) -> MetadataCache | None:
     cache_data = await connection.get(METADATA_CACHE_KEY)
     if cache_data is None:
         return None
