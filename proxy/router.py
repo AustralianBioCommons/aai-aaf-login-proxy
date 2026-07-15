@@ -12,7 +12,7 @@ from config import AppConfig
 from .dependencies import get_config, get_domain_map
 from .utils import get_validated_email
 
-router = APIRouter()
+router = APIRouter(include_in_schema=False)
 
 
 def _redirect_to_aaf(query_params: MultiDict, config: AppConfig):
