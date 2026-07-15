@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from types import SimpleNamespace
 
 import pytest
 from cryptography import x509
@@ -57,6 +58,35 @@ def _signed_metadata() -> tuple[bytes, bytes]:
     return etree.tostring(signed_root), certificate_pem.encode()
 
 
+def _verified_result(signed_xml):
+    return SimpleNamespace(signed_xml=signed_xml)
+
+
+def _metadata_root(
+    *,
+    tag: str = f"{{{NAMESPACES['md']}}}EntitiesDescriptor",
+    metadata_id: str | None = "metadata",
+    valid_until: str | None = None,
+):
+    root = etree.Element(tag)
+    if metadata_id is not None:
+        root.set("ID", metadata_id)
+    if valid_until is not None:
+        root.set("validUntil", valid_until)
+    return root
+
+
+def _mock_verified_metadata_dependencies(mocker, verified):
+    mocker.patch(
+        "aaf.security.get_metadata_and_pubkey",
+        mocker.AsyncMock(return_value=(b"<metadata />", b"certificate")),
+    )
+    verifier = mocker.Mock()
+    verifier.verify.return_value = verified
+    mocker.patch("aaf.security.XMLVerifier", return_value=verifier)
+    return verifier
+
+
 @pytest.mark.asyncio
 async def test_get_verified_metadata_verifies_signed_xml_against_public_key(
     monkeypatch,
@@ -105,6 +135,78 @@ async def test_get_verified_metadata_raises_if_signed_xml_is_tampered(monkeypatc
     )
 
     with pytest.raises(InvalidSignature):
+        await get_verified_metadata(
+            "https://example.test/metadata.xml",
+            "https://example.test/pubkey.pem",
+        )
+
+
+@pytest.mark.asyncio
+async def test_get_verified_metadata_raises_if_verifier_returns_list(mocker):
+    _mock_verified_metadata_dependencies(mocker, verified=[])
+
+    with pytest.raises(ValueError, match="Got a list from XMLVerifier"):
+        await get_verified_metadata(
+            "https://example.test/metadata.xml",
+            "https://example.test/pubkey.pem",
+        )
+
+
+@pytest.mark.asyncio
+async def test_get_verified_metadata_raises_if_signed_root_missing(mocker):
+    _mock_verified_metadata_dependencies(mocker, verified=_verified_result(None))
+
+    with pytest.raises(ValueError, match="No signed root found"):
+        await get_verified_metadata(
+            "https://example.test/metadata.xml",
+            "https://example.test/pubkey.pem",
+        )
+
+
+@pytest.mark.asyncio
+async def test_get_verified_metadata_raises_if_signed_root_is_unexpected(mocker):
+    root = _metadata_root(tag="unexpected")
+    _mock_verified_metadata_dependencies(mocker, verified=_verified_result(root))
+
+    with pytest.raises(ValueError, match="Unexpected signed root: unexpected"):
+        await get_verified_metadata(
+            "https://example.test/metadata.xml",
+            "https://example.test/pubkey.pem",
+        )
+
+
+@pytest.mark.asyncio
+async def test_get_verified_metadata_raises_if_signed_root_has_no_id(mocker):
+    root = _metadata_root(metadata_id=None)
+    _mock_verified_metadata_dependencies(mocker, verified=_verified_result(root))
+
+    with pytest.raises(ValueError, match="Signed metadata root has no ID"):
+        await get_verified_metadata(
+            "https://example.test/metadata.xml",
+            "https://example.test/pubkey.pem",
+        )
+
+
+@pytest.mark.asyncio
+async def test_get_verified_metadata_raises_if_metadata_expired(mocker):
+    root = _metadata_root(
+        valid_until=(datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
+    )
+    _mock_verified_metadata_dependencies(mocker, verified=_verified_result(root))
+
+    with pytest.raises(ValueError, match="Metadata expired at"):
+        await get_verified_metadata(
+            "https://example.test/metadata.xml",
+            "https://example.test/pubkey.pem",
+        )
+
+
+@pytest.mark.asyncio
+async def test_get_verified_metadata_raises_if_valid_until_missing(mocker):
+    root = _metadata_root()
+    _mock_verified_metadata_dependencies(mocker, verified=_verified_result(root))
+
+    with pytest.raises(ValueError, match="Signed metadata root has no validUntil"):
         await get_verified_metadata(
             "https://example.test/metadata.xml",
             "https://example.test/pubkey.pem",
