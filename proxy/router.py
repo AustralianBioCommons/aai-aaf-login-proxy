@@ -58,7 +58,7 @@ def authorize_proxy(
     entity_id = get_entity_id(screen_name, domain_map)
     if entity_id is None:
         logger.warning(
-            f"Couldn't determine entity ID from {screen_name}, redirecting to AAF without entityID"
+            "Couldn't determine entity ID from screen_name, redirecting to AAF without entityID"
         )
         return _redirect_to_aaf(query_params, config)
     query_params.append("entityID", entity_id)
