@@ -21,10 +21,33 @@ dependencies = [
 dev = [
     "marimo[lsp]>=0.23.13",
     "polars[excel]>=1.42.1",
+    "polyfactory>=3.3.0",
     "pre-commit>=4.6.0",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.1.0",
+    "pytest-mock>=3.15.1",
+    "pytest-sugar>=1.1.1",
     "ruff>=0.15.21",
     "ty>=0.0.59",
     "types-lxml>=2026.2.16",
+]
+
+[tool.pytest]
+minversion = "9.0"
+addopts = [
+    "--cov=aaf",
+    "--cov=cache",
+    "--cov=proxy"
+]
+testpaths = [
+    "tests"
+]
+pythonpath = ["."]
+
+[tool.coverage.run]
+omit = [
+    "tests/*"
 ]
 
 [tool.marimo.language_servers.pylsp]
