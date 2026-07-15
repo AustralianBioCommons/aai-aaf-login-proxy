@@ -55,8 +55,9 @@ async def get_verified_metadata(
     print(f"Metadata ID: {metadata_id}")
 
     valid_until = verified_root.get("validUntil")
-    if valid_until:
-        expires_at = datetime.fromisoformat(valid_until.replace("Z", "+00:00"))
-        if expires_at <= datetime.now(timezone.utc):
-            raise ValueError(f"Metadata expired at {valid_until}")
+    if valid_until is None:
+        raise ValueError("Signed metadata root has no validUntil")
+    expires_at = datetime.fromisoformat(valid_until.replace("Z", "+00:00"))
+    if expires_at <= datetime.now(timezone.utc):
+        raise ValueError(f"Metadata expired at {valid_until}")
     return verified_root
