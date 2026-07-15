@@ -9,7 +9,7 @@ from lxml import etree
 from signxml import XMLSigner
 from signxml.exceptions import InvalidSignature
 
-from aaf.security import get_verified_metadata
+from aaf.security import get_verified_metadata, get_metadata_and_pubkey
 from aaf.xml import NAMESPACES
 
 
@@ -109,3 +109,20 @@ async def test_get_verified_metadata_raises_if_signed_xml_is_tampered(monkeypatc
             "https://example.test/metadata.xml",
             "https://example.test/pubkey.pem",
         )
+
+
+@pytest.mark.asyncio
+async def test_get_metadata_and_pubkey(respx_mock):
+    """
+    Test get_metadata_and_pubkey calls the expected URLs and returns bytes
+    """
+    metadata_url = "https://example.test/metadata.xml"
+    pubkey_url = "https://example.test/pubkey.pem"
+    metadata_content = b"<tag>text</tag>"
+    pubkey_content = b"Y2VydGlmaWNhdGUgZXhhbXBsZQo="
+    metadata_mock = respx_mock.get(metadata_url).respond(content=metadata_content)
+    pubkey_mock = respx_mock.get(pubkey_url).respond(content=pubkey_content)
+    result = await get_metadata_and_pubkey(metadata_url, pubkey_url)
+    assert result == (metadata_content, pubkey_content)
+    assert metadata_mock.called
+    assert pubkey_mock.called
