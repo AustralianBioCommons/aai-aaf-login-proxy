@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 from loguru import logger
 
 from cache.scheduler import setup_scheduler
+from proxy.router import router as proxy_router
 
 
 @asynccontextmanager
@@ -20,6 +21,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+app.include_router(proxy_router, prefix="/")
 
 
 @app.middleware("http")
