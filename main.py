@@ -36,3 +36,8 @@ async def log_requests(request: Request, call_next):
         f"{request.method} {request.url.path} {response.status_code} {response_time:.3f}s"
     )
     return response
+
+
+@app.get("healthz")
+async def healthz():
+    return {"status": "ok"}
