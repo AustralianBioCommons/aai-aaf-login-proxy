@@ -1,9 +1,10 @@
+from fastapi.testclient import TestClient
 from unittest.mock import AsyncMock
 
 import pytest
 
 from config import AppConfig
-from proxy.dependencies import get_config, get_valkey_connection
+from proxy.dependencies import get_config, get_valkey_connection, get_domain_map
 from main import app
 
 
@@ -38,3 +39,17 @@ def override_valkey_connection(mock_valkey):
     app.dependency_overrides[get_valkey_connection] = lambda: mock_valkey
     yield
     app.dependency_overrides.pop(get_valkey_connection)
+
+
+@pytest.fixture
+def override_domain_map():
+    def _override(domain_map):
+        app.dependency_overrides[get_domain_map] = lambda: domain_map
+
+    yield _override
+    app.dependency_overrides.pop(get_domain_map, None)
+
+
+@pytest.fixture
+def test_client(override_app_config, override_valkey_connection) -> TestClient:
+    return TestClient(app=app)
