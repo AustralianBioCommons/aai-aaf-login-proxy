@@ -19,13 +19,15 @@ The proxy consists of two parts:
 ## Config/Environment Variables
 
 See `config.py` and `.env.example` for the environment variables that are used.
-Copy `.env.example` to `.env` and modify for local development.
-
 The most important variables are:
 
 * `AAF_METADATA_URL`: URL for the metadata XML AAF provides (different for test/prod)
 * `AAF_PUBKEY_URL`: public key for the certificate used to sign the metadata XML
 * `AAF_AUTHORIZE_URL`: URL to redirect to for AAF login
+
+The project uses `pydantic-settings` to manage config, and can read from
+either `.env` or environment variables (environment variables override `.env`)..
+Copy `.env.example` to `.env` and modify for local development.
 
 ## Development
 
