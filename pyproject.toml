@@ -19,6 +19,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "fakeredis[valkey]>=2.36.2",
     "httpx2>=2.7.0",
     "marimo[lsp]>=0.23.13",
     "polars[excel]>=1.42.1",
