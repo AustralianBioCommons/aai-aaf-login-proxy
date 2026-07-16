@@ -56,6 +56,30 @@ def _minimal_metadata_xml():
     return root
 
 
+def _add_idp(root, entity_id: str, scope: str):
+    idp = etree.SubElement(root, f"{{{NAMESPACES['md']}}}EntityDescriptor")
+    idp.set("entityID", entity_id)
+
+    idp_descriptor = etree.SubElement(idp, f"{{{NAMESPACES['md']}}}IDPSSODescriptor")
+    extensions = etree.SubElement(idp_descriptor, f"{{{NAMESPACES['md']}}}Extensions")
+    scope_element = etree.SubElement(extensions, f"{{{NAMESPACES['shibmd']}}}Scope")
+    scope_element.text = scope
+
+    organization = etree.SubElement(idp, f"{{{NAMESPACES['md']}}}Organization")
+    organization_name = etree.SubElement(
+        organization,
+        f"{{{NAMESPACES['md']}}}OrganizationName",
+        {f"{{{NAMESPACES['xml']}}}lang": "en"},
+    )
+    organization_name.text = "Example University"
+    organization_display_name = etree.SubElement(
+        organization,
+        f"{{{NAMESPACES['md']}}}OrganizationDisplayName",
+        {f"{{{NAMESPACES['xml']}}}lang": "en"},
+    )
+    organization_display_name.text = "Example Uni"
+
+
 def test_get_identity_providers_returns_only_idp_entities():
     root = _minimal_metadata_xml()
 
@@ -87,6 +111,31 @@ def test_get_aaf_metadata_parses_metadata_document():
         "example.edu.au": "https://idp.example.edu.au/idp/shibboleth"
     }
     assert result.errors == {}
+
+
+def test_get_aaf_metadata_logs_duplicate_domain_errors(mocker):
+    root = _minimal_metadata_xml()
+    _add_idp(
+        root,
+        entity_id="https://second-idp.example.edu.au/idp/shibboleth",
+        scope="example.edu.au",
+    )
+    logger_warning = mocker.patch("aaf.metadata.logger.warning")
+
+    result = get_aaf_metadata(root)
+
+    assert result.domain_map == {}
+    assert set(result.errors) == {"example.edu.au"}
+    logger_warning.assert_called_once()
+    assert "Duplicate entity IDs found" in logger_warning.call_args.args[0]
+
+
+def test_get_aaf_metadata_raises_when_valid_until_is_missing():
+    root = _minimal_metadata_xml()
+    root.attrib.pop("validUntil")
+
+    with pytest.raises(ValueError, match="validUntil"):
+        get_aaf_metadata(root)
 
 
 def test_single_string_validator_returns_only_list_item():
