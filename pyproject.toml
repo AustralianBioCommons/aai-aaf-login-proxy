@@ -19,6 +19,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "httpx2>=2.7.0",
     "marimo[lsp]>=0.23.13",
     "polars[excel]>=1.42.1",
     "polyfactory>=3.3.0",
