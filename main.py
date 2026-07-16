@@ -38,6 +38,6 @@ async def log_requests(request: Request, call_next):
     return response
 
 
-@app.get("healthz")
+@app.get("/healthz")
 async def healthz():
     return {"status": "ok"}
