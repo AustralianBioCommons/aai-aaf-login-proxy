@@ -91,6 +91,7 @@ async def test_update_metadata_cache_stores_verified_metadata(
     valkey_cls.assert_called_once_with(
         host=mock_app_config.valkey_host,
         port=mock_app_config.valkey_port,
+        password=mock_app_config.valkey_password,
     )
     get_verified_metadata.assert_awaited_once_with(
         mock_app_config.aaf_metadata_url,

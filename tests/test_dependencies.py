@@ -23,6 +23,7 @@ def test_get_valkey_connection(mock_app_config, mocker):
     valkey_cls.assert_called_once_with(
         host=mock_app_config.valkey_host,
         port=mock_app_config.valkey_port,
+        password=mock_app_config.valkey_password,
     )
 
 
