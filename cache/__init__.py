@@ -27,7 +27,11 @@ async def update_metadata_cache():
     so intentionally has no arguments.
     """
     settings = AppConfig()
-    connection = valkey.Valkey(host=settings.valkey_host, port=settings.valkey_port)
+    connection = valkey.Valkey(
+        host=settings.valkey_host,
+        port=settings.valkey_port,
+        password=settings.valkey_password,
+    )
 
     now = datetime.now(UTC)
     metadata_xml = await get_verified_metadata(

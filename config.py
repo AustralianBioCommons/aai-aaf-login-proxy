@@ -17,6 +17,7 @@ HttpsUrlString = Annotated[str, BeforeValidator(validate_https_url)]
 class AppConfig(BaseSettings):
     valkey_host: str = "localhost"
     valkey_port: int = 6379
+    valkey_password: str
     aaf_metadata_url: HttpsUrlString
     aaf_pubkey_url: HttpsUrlString
     aaf_authorize_url: HttpsUrlString

@@ -7,6 +7,7 @@ services:
     environment:
       VALKEY_HOST: valkey
       VALKEY_PORT: 6379
+      VALKEY_PASSWORD: ${VALKEY_PASSWORD}
     ports:
       - "8000:8000"
     depends_on:
@@ -15,8 +16,9 @@ services:
 
   valkey:
     image: valkey/valkey:latest
+    command: ["valkey-server", "--requirepass", "${VALKEY_PASSWORD}"]
     healthcheck:
-      test: ["CMD", "valkey-cli", "ping"]
+      test: ["CMD", "valkey-cli", "-a", "${VALKEY_PASSWORD}", "ping"]
       interval: 5s
       timeout: 3s
       retries: 5

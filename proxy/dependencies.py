@@ -15,7 +15,11 @@ def get_config():
 def get_valkey_connection(
     config: Annotated[AppConfig, Depends(get_config)],
 ) -> valkey_async.Valkey:
-    return valkey_async.Valkey(host=config.valkey_host, port=config.valkey_port)
+    return valkey_async.Valkey(
+        host=config.valkey_host,
+        port=config.valkey_port,
+        password=config.valkey_password,
+    )
 
 
 async def get_domain_map(

@@ -1,3 +1,5 @@
+from typing import Any
+
 import pytest
 
 from config import AppConfig
@@ -35,7 +37,7 @@ def test_app_config_from_env_vars(monkeypatch):
     "field", ["aaf_metadata_url", "aaf_pubkey_url", "aaf_authorize_url"]
 )
 def test_app_config_requires_https_urls(field):
-    defaults = {
+    defaults: dict[str, Any] = {
         "valkey_host": "localhost",
         "valkey_port": 6379,
         "aaf_metadata_url": "https://test.example/metadata.xml",
