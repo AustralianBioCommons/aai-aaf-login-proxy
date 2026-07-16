@@ -8,9 +8,18 @@ from proxy.dependencies import get_config, get_valkey_connection, get_domain_map
 from main import app
 
 
+class AppConfigNoEnv(AppConfig):
+    """
+    AppConfig for testing.
+    Override the default env_file to None, so that the AppConfig doesn't try to load .env
+    """
+
+    model_config = {**AppConfig.model_config, "env_file": None}
+
+
 @pytest.fixture
 def mock_app_config():
-    return AppConfig(
+    return AppConfigNoEnv(
         valkey_host="localhost",
         valkey_port=6379,
         valkey_password="dummy-password",

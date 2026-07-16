@@ -2,16 +2,17 @@ from typing import Any
 
 import pytest
 
-from config import AppConfig
+from tests.conftest import AppConfigNoEnv
 
 
 def test_app_config():
     """
     Test basic config validates
     """
-    config = AppConfig(
+    config = AppConfigNoEnv(
         valkey_host="localhost",
         valkey_port=6379,
+        valkey_password="dummy-password",
         aaf_metadata_url="https://test.example/metadata.xml",
         aaf_pubkey_url="https://test.example/pubkey.pem",
         aaf_authorize_url="https://test.example/authorize",
@@ -22,10 +23,11 @@ def test_app_config():
 def test_app_config_from_env_vars(monkeypatch):
     monkeypatch.setenv("VALKEY_HOST", "localhost")
     monkeypatch.setenv("VALKEY_PORT", "6379")
+    monkeypatch.setenv("VALKEY_PASSWORD", "dummy-password")
     monkeypatch.setenv("AAF_METADATA_URL", "https://test.example/metadata.xml")
     monkeypatch.setenv("AAF_PUBKEY_URL", "https://test.example/pubkey.pem")
     monkeypatch.setenv("AAF_AUTHORIZE_URL", "https://test.example/authorize")
-    config = AppConfig()
+    config = AppConfigNoEnv()
     assert config.valkey_host == "localhost"
     assert config.valkey_port == 6379
     assert config.aaf_metadata_url == "https://test.example/metadata.xml"
@@ -46,4 +48,4 @@ def test_app_config_requires_https_urls(field):
     }
     defaults[field] = "http://test.example/"
     with pytest.raises(ValueError, match=field):
-        AppConfig(**defaults)
+        AppConfigNoEnv(**defaults)
