@@ -1,0 +1,27 @@
+services:
+  aaf-proxy:
+    build: .
+    image: aaf-proxy
+    env_file:
+      - .env
+    environment:
+      VALKEY_HOST: valkey
+      VALKEY_PORT: 6379
+    ports:
+      - "8000:8000"
+    depends_on:
+      valkey:
+        condition: service_healthy
+
+  valkey:
+    image: valkey/valkey:latest
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - valkey-data:/data
+
+volumes:
+  valkey-data:
