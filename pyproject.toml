@@ -49,6 +49,7 @@ testpaths = [
 pythonpath = ["."]
 
 [tool.coverage.run]
+relative_files = true
 omit = [
     "tests/*"
 ]

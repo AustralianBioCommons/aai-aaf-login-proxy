@@ -8,6 +8,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
     strategy:
       matrix:
         python-version: ["3.14"]
@@ -19,3 +22,14 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Test with python ${{ matrix.python-version }}
         run: uv run --frozen pytest
+      - name: Coverage comment
+        id: coverage_comment
+        uses: py-cov-action/python-coverage-comment-action@v3
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Store Pull Request comment to be posted
+        uses: actions/upload-artifact@v7.0.1
+        if: steps.coverage_comment.outputs.COMMENT_FILE_WRITTEN == 'true'
+        with:
+          name: python-coverage-comment-action
+          path: python-coverage-comment-action.txt
