@@ -40,14 +40,6 @@ jobs:
             echo "Missing required secret AWS_ROLE_ECR_PUSH" >&2
             exit 1
           fi
-      - name: Show OIDC subject
-        run: |
-          TOKEN_JSON="$(curl -sSf \
-            -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
-            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com")"
-          TOKEN="$(echo "$TOKEN_JSON" | jq -r .value)"
-          PAYLOAD="$(echo "$TOKEN" | cut -d. -f2 | base64 -d 2>/dev/null || true)"
-          echo "$PAYLOAD" | jq '{iss, aud, sub, repository, ref}'
 
       - uses: docker/setup-buildx-action@v4
 
