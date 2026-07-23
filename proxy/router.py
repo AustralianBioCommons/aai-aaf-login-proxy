@@ -74,7 +74,7 @@ def oidc_config_proxy(
     # Fallback: just redirect to AAF config if we can't get our override config
     if oidc_config is None:
         return RedirectResponse(
-            url=f"{app_config.aaf_oidc_url.rstrip('/')}/.well-known/openid-configuration",
+            url=app_config.aaf_oidc_config_url,
             status_code=HTTP_302_FOUND,
             headers={"Cache-Control": "no-store"},
         )

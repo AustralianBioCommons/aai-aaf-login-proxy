@@ -127,9 +127,8 @@ def get_aaf_metadata(verified_xml: _Element) -> AafMetadata:
 
 
 async def fetch_oidc_configuration(settings: AppConfig):
-    oidc_url = f"{settings.aaf_oidc_url.rstrip('/')}/.well-known/openid-configuration"
     async with httpx.AsyncClient(verify=True) as client:
-        response = await client.get(oidc_url)
+        response = await client.get(settings.aaf_oidc_config_url)
     response.raise_for_status()
     return response.json()
 

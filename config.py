@@ -29,3 +29,7 @@ class AppConfig(BaseSettings):
     @property
     def aaf_authorize_url(self) -> str:
         return f"{self.aaf_oidc_url.rstrip('/')}/oidc/authorize"
+
+    @property
+    def aaf_oidc_config_url(self) -> str:
+        return f"{self.aaf_oidc_url.rstrip('/')}/.well-known/openid-configuration"
