@@ -4,7 +4,7 @@ import valkey.asyncio as valkey_async
 from fastapi import Depends
 from loguru import logger
 
-from cache import get_cached_metadata, get_cached_oidc_config
+from cache import get_cached_metadata, get_cached_oidc_config, ExpiredMetadataError
 from config import AppConfig
 
 
@@ -36,9 +36,11 @@ async def get_domain_map(
 async def get_oidc_config(
     valkey_connection: Annotated[valkey_async.Valkey, Depends(get_valkey_connection)],
 ):
-    config = await get_cached_oidc_config(connection=valkey_connection)
-    # TODO: retry/fallback
-    # Could fall back to just returning the raw response from upstream OIDC
+    try:
+        config = await get_cached_oidc_config(connection=valkey_connection)
+    except ExpiredMetadataError:
+        logger.warning("Cached OIDC config is expired")
+        return None
     if config is None:
         logger.warning("Failed to get oidc config from cache")
         return None

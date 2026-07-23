@@ -1,6 +1,7 @@
 from unittest.mock import Mock
 import pytest
 
+from cache import ExpiredMetadataError
 from proxy.dependencies import (
     get_config,
     get_valkey_connection,
@@ -81,3 +82,14 @@ async def test_get_oidc_config_no_cache(mock_valkey, mocker):
     result = await get_oidc_config(mock_valkey)
     assert result is None
     get_cached_oidc.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_get_oidc_config_returns_none_when_cache_expired(mock_valkey, mocker):
+    get_cached_oidc = mocker.patch(
+        "proxy.dependencies.get_cached_oidc_config",
+        mocker.AsyncMock(side_effect=ExpiredMetadataError("expired")),
+    )
+    result = await get_oidc_config(mock_valkey)
+    assert result is None
+    get_cached_oidc.assert_awaited_once_with(connection=mock_valkey)
