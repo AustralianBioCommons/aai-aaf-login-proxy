@@ -26,6 +26,7 @@ def mock_app_config():
         aaf_metadata_url="https://test.example/metadata.xml",
         aaf_pubkey_url="https://test.example/pubkey.pem",
         aaf_oidc_url="https://test.example/",
+        proxy_authorize_url="https://proxy.example/authorize",
     )
 
 
