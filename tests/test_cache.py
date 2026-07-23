@@ -9,7 +9,7 @@ from cache import (
     METADATA_CACHE_KEY,
     ExpiredMetadataError,
     MetadataCache,
-    get_metadata_cache,
+    get_cached_metadata,
     update_metadata_cache,
 )
 
@@ -21,7 +21,7 @@ def fake_valkey():
 
 @pytest.mark.asyncio
 async def test_get_metadata_cache_returns_none_when_cache_is_empty(fake_valkey):
-    result = await get_metadata_cache(fake_valkey)
+    result = await get_cached_metadata(fake_valkey)
 
     assert result is None
 
@@ -36,7 +36,7 @@ async def test_get_metadata_cache_returns_cached_metadata(fake_valkey):
     )
     await fake_valkey.set(METADATA_CACHE_KEY, cached_metadata.model_dump_json())
 
-    result = await get_metadata_cache(fake_valkey)
+    result = await get_cached_metadata(fake_valkey)
 
     assert result == cached_metadata
 
@@ -52,7 +52,7 @@ async def test_get_metadata_cache_raises_when_cached_metadata_is_expired(fake_va
     await fake_valkey.set(METADATA_CACHE_KEY, cached_metadata.model_dump_json())
 
     with pytest.raises(ExpiredMetadataError, match="Cached metadata expired at"):
-        await get_metadata_cache(fake_valkey)
+        await get_cached_metadata(fake_valkey)
 
 
 @pytest.mark.asyncio
@@ -99,7 +99,7 @@ async def test_update_metadata_cache_stores_verified_metadata(
     )
     get_aaf_metadata.assert_called_once_with(verified_metadata)
 
-    result = await get_metadata_cache(fake_valkey)
+    result = await get_cached_metadata(fake_valkey)
     assert result is not None
     assert result.domain_map == parsed_metadata.domain_map
     assert result.expires_at == expires_at
