@@ -1,9 +1,14 @@
+from httpx import Response
 from lxml import etree
 import pytest
 
 from tests.datagen import AafProviderFactory
 
-from aaf.metadata import _single_string_validator
+from aaf.metadata import (
+    _single_string_validator,
+    fetch_oidc_configuration,
+    get_overridden_oidc_configuration,
+)
 from aaf.metadata import get_aaf_metadata, get_domain_entity_map, get_identity_providers
 from aaf.metadata import get_provider_info
 from aaf.xml import NAMESPACES
@@ -189,3 +194,39 @@ def test_get_domain_entity_map_adds_duplicate_domains_to_errors():
         "https://idp-two.example.edu.au/idp/shibboleth"
         in result.errors["example.edu.au"]
     )
+
+
+@pytest.mark.asyncio
+async def test_fetch_oidc_configuration(mock_app_config, respx_mock):
+    request = respx_mock.get(mock_app_config.aaf_oidc_config_url)
+    mock_data = {"issuer": "https://example.org"}
+    request.return_value = Response(status_code=200, json=mock_data)
+    resp = await fetch_oidc_configuration(mock_app_config)
+    assert resp == mock_data
+    assert request.called
+
+
+@pytest.mark.asyncio
+async def test_get_overridden_oidc_configuration_overrides_authorization_endpoint(
+    mock_app_config, mocker
+):
+    """
+    Test get_overridden_oidc_configuration overrides authorization_endpoint,
+    but not other fields
+    """
+    upstream_config = {
+        "issuer": "https://test.example/",
+        "authorization_endpoint": "https://test.example/oidc/authorize",
+        "token_endpoint": "https://test.example/oidc/token",
+    }
+    fetch_oidc_configuration_mock = mocker.patch(
+        "aaf.metadata.fetch_oidc_configuration",
+        new=mocker.AsyncMock(return_value=upstream_config),
+    )
+
+    result = await get_overridden_oidc_configuration(mock_app_config)
+
+    assert result["authorization_endpoint"] == mock_app_config.proxy_authorize_url
+    assert result["issuer"] == upstream_config["issuer"]
+    assert result["token_endpoint"] == upstream_config["token_endpoint"]
+    fetch_oidc_configuration_mock.assert_awaited_once_with(mock_app_config)

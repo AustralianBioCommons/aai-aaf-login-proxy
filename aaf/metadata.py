@@ -2,12 +2,14 @@ from datetime import datetime
 from collections import defaultdict
 from typing import Annotated
 
+import httpx
 from loguru import logger
 from lxml import etree
 from lxml.etree import _Element
 from pydantic import BaseModel, BeforeValidator, AwareDatetime
 
 from aaf.xml import NAMESPACES
+from config import AppConfig
 
 
 def _single_string_validator(value: str | list[str]) -> str:
@@ -122,3 +124,16 @@ def get_aaf_metadata(verified_xml: _Element) -> AafMetadata:
         domain_map=domain_map_result.domain_map,
         errors=domain_map_result.errors,
     )
+
+
+async def fetch_oidc_configuration(settings: AppConfig):
+    async with httpx.AsyncClient(verify=True) as client:
+        response = await client.get(settings.aaf_oidc_config_url)
+    response.raise_for_status()
+    return response.json()
+
+
+async def get_overridden_oidc_configuration(settings: AppConfig):
+    oidc_config = await fetch_oidc_configuration(settings)
+    oidc_config["authorization_endpoint"] = settings.proxy_authorize_url
+    return oidc_config

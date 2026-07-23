@@ -20,6 +20,16 @@ class AppConfig(BaseSettings):
     valkey_password: str
     aaf_metadata_url: HttpsUrlString
     aaf_pubkey_url: HttpsUrlString
-    aaf_authorize_url: HttpsUrlString
+    aaf_oidc_url: HttpsUrlString
+    # Full URL to the proxy's authorize endpoint
+    proxy_authorize_url: HttpsUrlString
 
     model_config = SettingsConfigDict(env_file=".env")
+
+    @property
+    def aaf_authorize_url(self) -> str:
+        return f"{self.aaf_oidc_url.rstrip('/')}/oidc/authorize"
+
+    @property
+    def aaf_oidc_config_url(self) -> str:
+        return f"{self.aaf_oidc_url.rstrip('/')}/.well-known/openid-configuration"

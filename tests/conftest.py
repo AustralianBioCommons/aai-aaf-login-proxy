@@ -25,7 +25,8 @@ def mock_app_config():
         valkey_password="dummy-password",
         aaf_metadata_url="https://test.example/metadata.xml",
         aaf_pubkey_url="https://test.example/pubkey.pem",
-        aaf_authorize_url="https://test.example/authorize",
+        aaf_oidc_url="https://test.example/",
+        proxy_authorize_url="https://proxy.example/authorize",
     )
 
 
