@@ -1,6 +1,7 @@
+from fastapi.responses import JSONResponse
 from typing import Annotated
 
-from fastapi import Request
+from fastapi import Request, Response
 from fastapi.params import Depends
 from fastapi.routing import APIRouter
 from loguru import logger
@@ -9,13 +10,13 @@ from starlette.responses import RedirectResponse
 from starlette.status import HTTP_302_FOUND
 
 from config import AppConfig
-from .dependencies import get_config, get_domain_map
+from .dependencies import get_config, get_domain_map, get_oidc_config
 from .utils import get_validated_email
 
 router = APIRouter(include_in_schema=False)
 
 
-def _redirect_to_aaf(query_params: MultiDict, config: AppConfig):
+def _redirect_to_aaf(query_params: MultiDict, config: AppConfig) -> RedirectResponse:
     query = str(QueryParams(query_params))
     redirect_url = URL(config.aaf_authorize_url).replace(query=query)
     return RedirectResponse(
@@ -41,7 +42,7 @@ def authorize_proxy(
     request: Request,
     config: Annotated[AppConfig, Depends(get_config)],
     domain_map: Annotated[dict[str, str] | None, Depends(get_domain_map)],
-):
+) -> RedirectResponse:
     # NOTE: query_params is a MultiDict, may have multiple values for the same key
     query_params = MultiDict(request.query_params)
     # Remove existing entityID, if present
@@ -63,3 +64,20 @@ def authorize_proxy(
         return _redirect_to_aaf(query_params, config)
     query_params.append("entityID", entity_id)
     return _redirect_to_aaf(query_params, config)
+
+
+@router.get("/.well-known/openid-configuration")
+def oidc_config_proxy(
+    app_config: Annotated[AppConfig, Depends(get_config)],
+    oidc_config: Annotated[dict | None, Depends(get_oidc_config)],
+) -> Response:
+    # Fallback: just redirect to AAF config if we can't get our override config
+    if oidc_config is None:
+        return RedirectResponse(
+            url=f"{app_config.aaf_oidc_url.rstrip('/')}/.well-known/openid-configuration",
+            status_code=HTTP_302_FOUND,
+            headers={"Cache-Control": "no-store"},
+        )
+    return JSONResponse(
+        content=oidc_config, headers={"Cache-Control": "public, max-age=3600"}
+    )
