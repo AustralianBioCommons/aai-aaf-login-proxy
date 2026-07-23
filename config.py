@@ -21,6 +21,8 @@ class AppConfig(BaseSettings):
     aaf_metadata_url: HttpsUrlString
     aaf_pubkey_url: HttpsUrlString
     aaf_oidc_url: HttpsUrlString
+    # Full URL to the proxy's authorize endpoint
+    proxy_authorize_url: HttpsUrlString
 
     model_config = SettingsConfigDict(env_file=".env")
 
