@@ -16,6 +16,7 @@ def test_app_config():
         aaf_metadata_url="https://test.example/metadata.xml",
         aaf_pubkey_url="https://test.example/pubkey.pem",
         aaf_oidc_url="https://test.example/",
+        proxy_authorize_url="https://proxy.example/authorize",
     )
     assert config.valkey_host == "localhost"
     assert config.aaf_authorize_url == "https://test.example/oidc/authorize"
@@ -28,12 +29,14 @@ def test_app_config_from_env_vars(monkeypatch):
     monkeypatch.setenv("AAF_METADATA_URL", "https://test.example/metadata.xml")
     monkeypatch.setenv("AAF_PUBKEY_URL", "https://test.example/pubkey.pem")
     monkeypatch.setenv("AAF_OIDC_URL", "https://test.example/")
+    monkeypatch.setenv("PROXY_AUTHORIZE_URL", "https://proxy.example/authorize")
     config = AppConfigNoEnv()
     assert config.valkey_host == "localhost"
     assert config.valkey_port == 6379
     assert config.aaf_metadata_url == "https://test.example/metadata.xml"
     assert config.aaf_pubkey_url == "https://test.example/pubkey.pem"
     assert config.aaf_authorize_url == "https://test.example/oidc/authorize"
+    assert config.proxy_authorize_url == "https://proxy.example/authorize"
 
 
 @pytest.mark.parametrize(
