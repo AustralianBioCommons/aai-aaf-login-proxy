@@ -15,7 +15,8 @@
 | proxy/router.py       |       43 |        0 |     100% |           |
 | proxy/utils.py        |        6 |        0 |     100% |           |
 | utils/\_\_init\_\_.py |       10 |        0 |     100% |           |
-| **TOTAL**             |  **254** |    **0** | **100%** |           |
+| utils/metrics.py      |        6 |        0 |     100% |           |
+| **TOTAL**             |  **260** |    **0** | **100%** |           |
 
 
 ## Setup coverage badge
