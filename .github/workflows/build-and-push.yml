@@ -91,6 +91,7 @@ jobs:
 
       - name: Deploy dev-aaf
         if: env.DEPLOY_DEV_AAF == 'true'
+        timeout-minutes: 20
         env:
           AWS_DEPLOY_FUNCTION_DEV_AAF: ${{ secrets.AWS_DEPLOY_FUNCTION_DEV_AAF }}
         run: |
@@ -99,6 +100,7 @@ jobs:
           aws lambda invoke \
             --function-name "${AWS_DEPLOY_FUNCTION_DEV_AAF}" \
             --cli-binary-format raw-in-base64-out \
+            --cli-read-timeout 600 \
             --payload "{\"tag\":\"${IMAGE_TAG}\"}" \
             /tmp/aaf-login-proxy-deploy.json
 
