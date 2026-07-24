@@ -41,7 +41,8 @@ minversion = "9.0"
 addopts = [
     "--cov=aaf",
     "--cov=cache",
-    "--cov=proxy"
+    "--cov=proxy",
+    "--cov=utils",
 ]
 testpaths = [
     "tests"

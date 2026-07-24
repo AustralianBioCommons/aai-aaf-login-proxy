@@ -8,6 +8,9 @@ from loguru import logger
 
 from cache.scheduler import setup_scheduler
 from proxy.router import router as proxy_router
+from utils import get_project_version
+
+APP_VERSION = get_project_version()
 
 
 @asynccontextmanager
@@ -20,7 +23,8 @@ async def lifespan(app: FastAPI):
         scheduler.shutdown(wait=False)
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, version=APP_VERSION)
+
 app.include_router(proxy_router, prefix="")
 
 
@@ -41,3 +45,8 @@ async def log_requests(request: Request, call_next):
 @app.get("/healthz")
 async def healthz():
     return {"status": "ok"}
+
+
+@app.get("/")
+async def default():
+    return {"message": "BioCommons Access login proxy", "version": APP_VERSION}
