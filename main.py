@@ -1,3 +1,4 @@
+from utils.metrics import setup_metrics
 import time
 
 from starlette.requests import Request
@@ -50,3 +51,7 @@ async def healthz():
 @app.get("/")
 async def default():
     return {"message": "BioCommons Access login proxy", "version": APP_VERSION}
+
+
+# Only enabled if ENABLED_METRICS env var is set
+METRICS = setup_metrics(app)
