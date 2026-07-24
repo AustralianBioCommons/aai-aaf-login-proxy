@@ -10,6 +10,13 @@ from proxy.dependencies import (
 )
 
 
+@pytest.fixture(autouse=True)
+def clear_get_config_cache():
+    get_config.cache_clear()
+    yield
+    get_config.cache_clear()
+
+
 def test_get_config(mock_app_config, mocker):
     """
     Test get_config calls AppConfig and returns the result
