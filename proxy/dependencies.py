@@ -1,3 +1,4 @@
+from functools import lru_cache
 from typing import Annotated
 
 import valkey.asyncio as valkey_async
@@ -8,7 +9,8 @@ from cache import get_cached_metadata, get_cached_oidc_config, ExpiredMetadataEr
 from config import AppConfig
 
 
-def get_config():
+@lru_cache(maxsize=1)
+def get_config() -> AppConfig:
     return AppConfig()
 
 
