@@ -12,7 +12,8 @@ env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   IMAGE_REPO: ${{ secrets.AWS_ECR_IMAGE_REPO }}
   IMAGE_TAG: dev-aaf
-  DEPLOY_DEV_AAF: 'false'
+  # Automatically deploy new image to the dev-aaf branch
+  DEPLOY_DEV_AAF: 'true'
 
 jobs:
   docker:
