@@ -33,6 +33,7 @@ class AafMetadata(BaseModel):
     providers: dict[str, AafProvider]
     domain_map: dict[str, str]
     errors: dict[str, str]
+    domains: list[str]
 
 
 class AafProvider(BaseModel):
@@ -49,6 +50,13 @@ class DomainMapResult(BaseModel):
 
     domain_map: dict[str, str]
     errors: dict[str, str]
+
+
+def get_all_domains(providers: dict[str, AafProvider]) -> list[str]:
+    domains = []
+    for provider_id, provider in providers.items():
+        domains.extend(provider.scopes)
+    return domains
 
 
 def get_identity_providers(root: _Element) -> list[etree.Element]:
@@ -110,6 +118,7 @@ def get_aaf_metadata(verified_xml: _Element) -> AafMetadata:
         idp_info = get_provider_info(idp)
         provider_info[idp_info.entity_id] = idp_info
 
+    domains = get_all_domains(provider_info)
     domain_map_result = get_domain_entity_map(provider_info)
     if domain_map_result.errors:
         logger.warning(f"Duplicate entity IDs found: {domain_map_result.errors}")
@@ -123,6 +132,7 @@ def get_aaf_metadata(verified_xml: _Element) -> AafMetadata:
         providers=provider_info,
         domain_map=domain_map_result.domain_map,
         errors=domain_map_result.errors,
+        domains=domains,
     )
 
 

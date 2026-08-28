@@ -35,6 +35,7 @@ async def test_get_metadata_cache_returns_cached_metadata(fake_valkey):
     now = datetime.now(UTC)
     cached_metadata = MetadataCache(
         domain_map={"example.edu.au": "https://idp.example.edu.au/idp/shibboleth"},
+        domains=["example.edu.au"],
         updated_at=now,
         expires_at=now + timedelta(days=1),
     )
@@ -50,6 +51,7 @@ async def test_get_metadata_cache_raises_when_cached_metadata_is_expired(fake_va
     now = datetime.now(UTC)
     cached_metadata = MetadataCache(
         domain_map={"example.edu.au": "https://idp.example.edu.au/idp/shibboleth"},
+        domains=["example.edu.au"],
         updated_at=now - timedelta(days=2),
         expires_at=now - timedelta(days=1),
     )
@@ -68,6 +70,7 @@ async def test_update_metadata_cache_stores_verified_metadata(
     entity_id = "https://idp.example.edu.au/idp/shibboleth"
     parsed_metadata = AafMetadata(
         domain_map={"example.edu.au": "https://idp.example.edu.au/idp/shibboleth"},
+        domains=["example.edu.au"],
         expires_at=expires_at,
         providers={
             entity_id: AafProvider(
@@ -151,7 +154,7 @@ async def test_get_cached_oidc_config_no_cache(fake_valkey):
 
 
 @pytest.mark.asyncio
-async def test_get_cached_oid_config_returns_cahed_data(fake_valkey):
+async def test_get_cached_oid_config_returns_cached_data(fake_valkey):
     now = datetime.now(UTC)
     cached = OidcConfigCache(
         config={"issuer": "https://test.example.com"},
