@@ -1,3 +1,4 @@
+from email_validator import validate_email, EmailNotValidError
 import http
 
 from fastapi.responses import JSONResponse
@@ -77,7 +78,7 @@ class AafDomainsResponse(BaseModel):
 
 
 @router.get(
-    "/aaf-domains",
+    "/aaf/domains",
     response_model=AafDomainsResponse,
     include_in_schema=True,
     description="Get the list of domains supported by AAF",
@@ -89,6 +90,37 @@ def aaf_domains(domains: Annotated[list[str] | None, Depends(get_aaf_domains)]):
             detail="Couldn't get AAF domains",
         )
     return AafDomainsResponse(domains=domains)
+
+
+class AafEmailCheckResponse(BaseModel):
+    email: str
+    is_aaf: bool
+
+
+@router.get(
+    "/aaf/email-check",
+    include_in_schema=True,
+    description="Check if the given email address belongs to AAF",
+    response_model=AafEmailCheckResponse,
+)
+def aaf_email_check(
+    email: str, domains: Annotated[list[str] | None, Depends(get_aaf_domains)]
+):
+    if domains is None:
+        raise HTTPException(
+            status_code=http.HTTPStatus.SERVICE_UNAVAILABLE,
+            detail="Couldn't get AAF domains",
+        )
+    try:
+        validated = validate_email(email, check_deliverability=False)
+    except EmailNotValidError:
+        raise HTTPException(
+            status_code=http.HTTPStatus.BAD_REQUEST, detail="Email not valid"
+        )
+    return AafEmailCheckResponse(
+        email=email,
+        is_aaf=validated.domain in domains,
+    )
 
 
 @router.get(
