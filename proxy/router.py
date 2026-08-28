@@ -16,7 +16,7 @@ from config import AppConfig
 from .dependencies import get_config, get_domain_map, get_oidc_config, get_aaf_domains
 from .utils import get_validated_email
 
-router = APIRouter(include_in_schema=False)
+router = APIRouter()
 
 
 def _redirect_to_aaf(query_params: MultiDict, config: AppConfig) -> RedirectResponse:
@@ -40,7 +40,10 @@ def get_entity_id(screen_name: str, domain_map: dict[str, str]):
     return domain_map.get(email.domain)
 
 
-@router.get("/authorize")
+@router.get(
+    "/authorize",
+    include_in_schema=False,
+)
 def authorize_proxy(
     request: Request,
     config: Annotated[AppConfig, Depends(get_config)],
@@ -76,6 +79,8 @@ class AafDomainsResponse(BaseModel):
 @router.get(
     "/aaf-domains",
     response_model=AafDomainsResponse,
+    include_in_schema=True,
+    description="Get the list of domains supported by AAF",
 )
 def aaf_domains(domains: Annotated[list[str] | None, Depends(get_aaf_domains)]):
     if domains is None:
@@ -86,7 +91,10 @@ def aaf_domains(domains: Annotated[list[str] | None, Depends(get_aaf_domains)]):
     return AafDomainsResponse(domains=domains)
 
 
-@router.get("/.well-known/openid-configuration")
+@router.get(
+    "/.well-known/openid-configuration",
+    include_in_schema=False,
+)
 def oidc_config_proxy(
     app_config: Annotated[AppConfig, Depends(get_config)],
     oidc_config: Annotated[dict | None, Depends(get_oidc_config)],
