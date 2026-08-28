@@ -24,6 +24,26 @@ def get_url_and_query(response):
     return location, parsed, parse_qs(parsed.query)
 
 
+def test_aaf_domains(test_client, override_aaf_domains):
+    """
+    Test /aaf-domains endpoint returns the list of domains
+    """
+    domains = ["sydney.edu.au", "unimelb.edu.au"]
+    override_aaf_domains(domains)
+
+    response = test_client.get("/aaf-domains")
+    assert response.status_code == 200
+    assert response.json() == {"domains": domains}
+
+
+def test_aaf_domains_no_cache(test_client, override_aaf_domains):
+    override_aaf_domains(None)
+
+    response = test_client.get("/aaf-domains")
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Couldn't get AAF domains"
+
+
 def test_authorize_adds_entity_id(test_client, override_domain_map):
     entity_id = "https://idp.sydney.edu.au/idp/shibboleth"
     override_domain_map({"sydney.edu.au": entity_id})

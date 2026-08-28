@@ -7,6 +7,7 @@ from proxy.dependencies import (
     get_valkey_connection,
     get_domain_map,
     get_oidc_config,
+    get_aaf_domains,
 )
 
 
@@ -61,6 +62,30 @@ async def test_get_domain_map_no_cache(mock_valkey, mocker):
         "proxy.dependencies.get_cached_metadata", mocker.AsyncMock(return_value=None)
     )
     result = await get_domain_map(mock_valkey)
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_get_aaf_domains(mock_valkey, mocker):
+    mock_metadata = Mock(domains=["sydney.edu.au"])
+    get_metadata_cache = mocker.patch(
+        "proxy.dependencies.get_cached_metadata",
+        mocker.AsyncMock(return_value=mock_metadata),
+    )
+    result = await get_aaf_domains(mock_valkey)
+    assert result == mock_metadata.domains
+    get_metadata_cache.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_get_aaf_domains_no_cache(mock_valkey, mocker):
+    """
+    Test get_domain_map returns None if no metadata cache is available
+    """
+    mocker.patch(
+        "proxy.dependencies.get_cached_metadata", mocker.AsyncMock(return_value=None)
+    )
+    result = await get_aaf_domains(mock_valkey)
     assert result is None
 
 
