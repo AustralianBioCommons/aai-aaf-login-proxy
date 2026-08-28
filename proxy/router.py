@@ -1,16 +1,19 @@
+import http
+
 from fastapi.responses import JSONResponse
 from typing import Annotated
 
-from fastapi import Request, Response
+from fastapi import Request, Response, HTTPException
 from fastapi.params import Depends
 from fastapi.routing import APIRouter
 from loguru import logger
+from pydantic import BaseModel
 from starlette.datastructures import MultiDict, URL, QueryParams
 from starlette.responses import RedirectResponse
 from starlette.status import HTTP_302_FOUND
 
 from config import AppConfig
-from .dependencies import get_config, get_domain_map, get_oidc_config
+from .dependencies import get_config, get_domain_map, get_oidc_config, get_aaf_domains
 from .utils import get_validated_email
 
 router = APIRouter(include_in_schema=False)
@@ -64,6 +67,23 @@ def authorize_proxy(
         return _redirect_to_aaf(query_params, config)
     query_params.append("entityID", entity_id)
     return _redirect_to_aaf(query_params, config)
+
+
+class AafDomainsResponse(BaseModel):
+    domains: list[str]
+
+
+@router.get(
+    "/aaf-domains",
+    response_model=AafDomainsResponse,
+)
+def aaf_domains(domains: Annotated[list[str] | None, Depends(get_aaf_domains)]):
+    if domains is None:
+        raise HTTPException(
+            status_code=http.HTTPStatus.SERVICE_UNAVAILABLE,
+            detail="Couldn't get AAF domains",
+        )
+    return AafDomainsResponse(domains=domains)
 
 
 @router.get("/.well-known/openid-configuration")

@@ -35,6 +35,16 @@ async def get_domain_map(
     return metadata.domain_map
 
 
+async def get_aaf_domains(
+    valkey_connection: Annotated[valkey_async.Valkey, Depends(get_valkey_connection)],
+) -> list[str] | None:
+    metadata = await get_cached_metadata(connection=valkey_connection)
+    if metadata is None:
+        logger.warning("Failed to get metadata cache, domain map unavailable")
+        return None
+    return metadata.domains
+
+
 async def get_oidc_config(
     valkey_connection: Annotated[valkey_async.Valkey, Depends(get_valkey_connection)],
 ):
