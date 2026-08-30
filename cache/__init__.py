@@ -18,6 +18,7 @@ class ExpiredMetadataError(RuntimeError):
 
 class MetadataCache(BaseModel):
     domain_map: dict[str, str]
+    domains: list[str]
     updated_at: AwareDatetime
     expires_at: AwareDatetime
 
@@ -46,7 +47,10 @@ async def update_metadata_cache():
     )
     metadata = get_aaf_metadata(metadata_xml)
     cache_data = MetadataCache(
-        domain_map=metadata.domain_map, updated_at=now, expires_at=metadata.expires_at
+        domain_map=metadata.domain_map,
+        domains=metadata.domains,
+        updated_at=now,
+        expires_at=metadata.expires_at,
     )
     logger.info("Updating metadata cache")
     await connection.set(METADATA_CACHE_KEY, cache_data.model_dump_json())

@@ -1,3 +1,4 @@
+import http
 from urllib.parse import parse_qs, urlparse
 
 import pytest
@@ -22,6 +23,62 @@ def get_url_and_query(response):
     location = response.headers["location"]
     parsed = urlparse(location)
     return location, parsed, parse_qs(parsed.query)
+
+
+def test_aaf_domains(test_client, override_aaf_domains):
+    """
+    Test /aaf-domains endpoint returns the list of domains
+    """
+    domains = ["sydney.edu.au", "unimelb.edu.au"]
+    override_aaf_domains(domains)
+
+    response = test_client.get("/aaf/domains")
+    assert response.status_code == 200
+    assert response.json() == {"domains": domains}
+
+
+def test_aaf_domains_no_cache(test_client, override_aaf_domains):
+    override_aaf_domains(None)
+
+    response = test_client.get("/aaf/domains")
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Couldn't get AAF domains"
+
+
+def test_aaf_check_email(test_client, override_aaf_domains):
+    domains = ["sydney.edu.au", "unimelb.edu.au"]
+    override_aaf_domains(domains)
+    response = test_client.get(
+        "/aaf/email-check", params={"email": "user@sydney.edu.au"}
+    )
+    assert response.status_code == 200
+    assert response.json() == {"email": "user@sydney.edu.au", "is_aaf": True}
+
+
+def test_aaf_check_email_non_aaf(test_client, override_aaf_domains):
+    domains = ["sydney.edu.au", "unimelb.edu.au"]
+    override_aaf_domains(domains)
+    response = test_client.get("/aaf/email-check", params={"email": "user@gmail.com"})
+    assert response.status_code == 200
+    assert response.json() == {"email": "user@gmail.com", "is_aaf": False}
+
+
+def test_aaf_check_email_invalid_email(test_client, override_aaf_domains):
+    domains = ["sydney.edu.au", "unimelb.edu.au"]
+    override_aaf_domains(domains)
+    response = test_client.get("/aaf/email-check", params={"email": "invalid-email"})
+    assert response.status_code == http.HTTPStatus.BAD_REQUEST
+    assert response.json() == {"detail": "Email not valid"}
+
+
+def test_aaf_check_email_no_cache(test_client, override_aaf_domains):
+    override_aaf_domains(None)
+
+    response = test_client.get(
+        "/aaf/email-check", params={"email": "user@unimelb.edu.au"}
+    )
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Couldn't get AAF domains"
 
 
 def test_authorize_adds_entity_id(test_client, override_domain_map):

@@ -4,7 +4,12 @@ from unittest.mock import AsyncMock
 import pytest
 
 from config import AppConfig
-from proxy.dependencies import get_config, get_valkey_connection, get_domain_map
+from proxy.dependencies import (
+    get_config,
+    get_valkey_connection,
+    get_domain_map,
+    get_aaf_domains,
+)
 from main import app
 
 
@@ -59,6 +64,15 @@ def override_domain_map():
 
     yield _override
     app.dependency_overrides.pop(get_domain_map, None)
+
+
+@pytest.fixture
+def override_aaf_domains():
+    def _override(domains):
+        app.dependency_overrides[get_aaf_domains] = lambda: domains
+
+    yield _override
+    app.dependency_overrides.pop(get_aaf_domains, None)
 
 
 @pytest.fixture

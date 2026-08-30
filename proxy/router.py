@@ -1,19 +1,23 @@
+from email_validator import validate_email, EmailNotValidError
+import http
+
 from fastapi.responses import JSONResponse
 from typing import Annotated
 
-from fastapi import Request, Response
+from fastapi import Request, Response, HTTPException
 from fastapi.params import Depends
 from fastapi.routing import APIRouter
 from loguru import logger
+from pydantic import BaseModel
 from starlette.datastructures import MultiDict, URL, QueryParams
 from starlette.responses import RedirectResponse
 from starlette.status import HTTP_302_FOUND
 
 from config import AppConfig
-from .dependencies import get_config, get_domain_map, get_oidc_config
+from .dependencies import get_config, get_domain_map, get_oidc_config, get_aaf_domains
 from .utils import get_validated_email
 
-router = APIRouter(include_in_schema=False)
+router = APIRouter()
 
 
 def _redirect_to_aaf(query_params: MultiDict, config: AppConfig) -> RedirectResponse:
@@ -37,7 +41,10 @@ def get_entity_id(screen_name: str, domain_map: dict[str, str]):
     return domain_map.get(email.domain)
 
 
-@router.get("/authorize")
+@router.get(
+    "/authorize",
+    include_in_schema=False,
+)
 def authorize_proxy(
     request: Request,
     config: Annotated[AppConfig, Depends(get_config)],
@@ -66,7 +73,60 @@ def authorize_proxy(
     return _redirect_to_aaf(query_params, config)
 
 
-@router.get("/.well-known/openid-configuration")
+class AafDomainsResponse(BaseModel):
+    domains: list[str]
+
+
+@router.get(
+    "/aaf/domains",
+    response_model=AafDomainsResponse,
+    include_in_schema=True,
+    description="Get the list of domains supported by AAF",
+)
+def aaf_domains(domains: Annotated[list[str] | None, Depends(get_aaf_domains)]):
+    if domains is None:
+        raise HTTPException(
+            status_code=http.HTTPStatus.SERVICE_UNAVAILABLE,
+            detail="Couldn't get AAF domains",
+        )
+    return AafDomainsResponse(domains=domains)
+
+
+class AafEmailCheckResponse(BaseModel):
+    email: str
+    is_aaf: bool
+
+
+@router.get(
+    "/aaf/email-check",
+    include_in_schema=True,
+    description="Check if the given email address belongs to AAF",
+    response_model=AafEmailCheckResponse,
+)
+def aaf_email_check(
+    email: str, domains: Annotated[list[str] | None, Depends(get_aaf_domains)]
+):
+    if domains is None:
+        raise HTTPException(
+            status_code=http.HTTPStatus.SERVICE_UNAVAILABLE,
+            detail="Couldn't get AAF domains",
+        )
+    try:
+        validated = validate_email(email, check_deliverability=False)
+    except EmailNotValidError:
+        raise HTTPException(
+            status_code=http.HTTPStatus.BAD_REQUEST, detail="Email not valid"
+        )
+    return AafEmailCheckResponse(
+        email=email,
+        is_aaf=validated.domain in domains,
+    )
+
+
+@router.get(
+    "/.well-known/openid-configuration",
+    include_in_schema=False,
+)
 def oidc_config_proxy(
     app_config: Annotated[AppConfig, Depends(get_config)],
     oidc_config: Annotated[dict | None, Depends(get_oidc_config)],
