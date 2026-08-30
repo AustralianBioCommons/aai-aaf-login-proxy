@@ -5,18 +5,18 @@
 | Name                  |    Stmts |     Miss |    Cover |   Missing |
 |---------------------- | -------: | -------: | -------: | --------: |
 | aaf/\_\_init\_\_.py   |        0 |        0 |     100% |           |
-| aaf/metadata.py       |       61 |        0 |     100% |           |
+| aaf/metadata.py       |       67 |        0 |     100% |           |
 | aaf/security.py       |       39 |        0 |     100% |           |
 | aaf/xml.py            |        1 |        0 |     100% |           |
 | cache/\_\_init\_\_.py |       51 |        0 |     100% |           |
 | cache/scheduler.py    |       15 |        0 |     100% |           |
 | proxy/\_\_init\_\_.py |        0 |        0 |     100% |           |
-| proxy/dependencies.py |       28 |        0 |     100% |           |
-| proxy/router.py       |       43 |        0 |     100% |           |
+| proxy/dependencies.py |       34 |        0 |     100% |           |
+| proxy/router.py       |       62 |        0 |     100% |           |
 | proxy/utils.py        |        6 |        0 |     100% |           |
 | utils/\_\_init\_\_.py |       10 |        0 |     100% |           |
 | utils/metrics.py      |        6 |        0 |     100% |           |
-| **TOTAL**             |  **260** |    **0** | **100%** |           |
+| **TOTAL**             |  **291** |    **0** | **100%** |           |
 
 
 ## Setup coverage badge
