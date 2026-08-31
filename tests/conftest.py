@@ -32,6 +32,7 @@ def mock_app_config():
         aaf_pubkey_url="https://test.example/pubkey.pem",
         aaf_oidc_url="https://test.example/",
         proxy_authorize_url="https://proxy.example/authorize",
+        allowed_origins="http://localhost",
     )
 
 
