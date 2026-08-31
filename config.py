@@ -11,6 +11,17 @@ def validate_https_url(value: str) -> str:
     return str(parsed)
 
 
+def validate_allowed_origins(value: str) -> list[str]:
+    if not value:
+        return []
+    origins = []
+    for origin in value.split(","):
+        origin = origin.strip()
+        if origin:
+            origins.append(origin)
+    return origins
+
+
 HttpsUrlString = Annotated[str, BeforeValidator(validate_https_url)]
 
 
@@ -23,6 +34,9 @@ class AppConfig(BaseSettings):
     aaf_oidc_url: HttpsUrlString
     # Full URL to the proxy's authorize endpoint
     proxy_authorize_url: HttpsUrlString
+    allowed_origins: Annotated[
+        list[str], BeforeValidator(validate_allowed_origins)
+    ] = []
 
     model_config = SettingsConfigDict(env_file=".env")
 
