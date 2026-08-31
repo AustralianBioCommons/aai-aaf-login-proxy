@@ -1,3 +1,5 @@
+from fastapi.middleware.cors import CORSMiddleware
+from proxy.dependencies import get_config
 from utils.metrics import setup_metrics
 import time
 
@@ -24,7 +26,19 @@ async def lifespan(app: FastAPI):
         scheduler.shutdown(wait=False)
 
 
+def get_allowed_origins() -> list[str]:
+    config = get_config()
+    return config.allowed_origins
+
+
 app = FastAPI(lifespan=lifespan, version=APP_VERSION)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=get_allowed_origins(),
+    allow_credentials=False,
+    allow_methods=("GET",),
+    allow_headers=("*",),
+)
 
 app.include_router(proxy_router, prefix="")
 
