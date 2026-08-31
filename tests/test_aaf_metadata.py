@@ -7,6 +7,7 @@ from tests.datagen import AafProviderFactory
 from aaf.metadata import (
     _single_string_validator,
     fetch_oidc_configuration,
+    get_all_domains,
     get_overridden_oidc_configuration,
 )
 from aaf.metadata import get_aaf_metadata, get_domain_entity_map, get_identity_providers
@@ -194,6 +195,25 @@ def test_get_domain_entity_map_adds_duplicate_domains_to_errors():
         "https://idp-two.example.edu.au/idp/shibboleth"
         in result.errors["example.edu.au"]
     )
+
+
+def test_get_all_domains_returns_unique_sorted_domains():
+    providers = {
+        "https://idp-one.example.edu.au/idp/shibboleth": AafProviderFactory.build(
+            scopes=["z.example.edu.au", "a.example.edu.au", "z.example.edu.au"],
+        ),
+        "https://idp-two.example.edu.au/idp/shibboleth": AafProviderFactory.build(
+            scopes=["m.example.edu.au", "a.example.edu.au"],
+        ),
+    }
+
+    result = get_all_domains(providers)
+
+    assert result == [
+        "a.example.edu.au",
+        "m.example.edu.au",
+        "z.example.edu.au",
+    ]
 
 
 @pytest.mark.asyncio
