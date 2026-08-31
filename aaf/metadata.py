@@ -53,10 +53,11 @@ class DomainMapResult(BaseModel):
 
 
 def get_all_domains(providers: dict[str, AafProvider]) -> list[str]:
-    domains = []
+    domains = set()
     for provider_id, provider in providers.items():
-        domains.extend(provider.scopes)
-    return domains
+        for scope in provider.scopes:
+            domains.add(scope)
+    return sorted(list(domains))
 
 
 def get_identity_providers(root: _Element) -> list[etree.Element]:
