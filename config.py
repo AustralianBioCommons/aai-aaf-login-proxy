@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from pydantic import HttpUrl, BeforeValidator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 def validate_https_url(value: str) -> str:
@@ -11,9 +11,11 @@ def validate_https_url(value: str) -> str:
     return str(parsed)
 
 
-def validate_allowed_origins(value: str) -> list[str]:
+def validate_allowed_origins(value: str | list[str]) -> list[str]:
     if not value:
         return []
+    if isinstance(value, list):
+        return value
     origins = []
     for origin in value.split(","):
         origin = origin.strip()
@@ -35,7 +37,7 @@ class AppConfig(BaseSettings):
     # Full URL to the proxy's authorize endpoint
     proxy_authorize_url: HttpsUrlString
     allowed_origins: Annotated[
-        list[str], BeforeValidator(validate_allowed_origins)
+        list[str], NoDecode, BeforeValidator(validate_allowed_origins)
     ] = []
 
     model_config = SettingsConfigDict(env_file=".env")
