@@ -3,12 +3,11 @@ from urllib.parse import parse_qs, urlparse
 
 import pytest
 
-from main import app
 from proxy.dependencies import get_oidc_config
 
 
 @pytest.fixture
-def override_oidc_config():
+def override_oidc_config(app):
     def _override(oidc_config):
         app.dependency_overrides[get_oidc_config] = lambda: oidc_config
 

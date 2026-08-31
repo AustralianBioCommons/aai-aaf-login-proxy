@@ -1,8 +1,10 @@
 from fastapi.testclient import TestClient
+from fastapi import FastAPI
 from unittest.mock import AsyncMock
 
 import pytest
 
+from application import create_app
 from config import AppConfig
 from proxy.dependencies import (
     get_config,
@@ -10,7 +12,6 @@ from proxy.dependencies import (
     get_domain_map,
     get_aaf_domains,
 )
-from main import app
 
 
 class AppConfigNoEnv(AppConfig):
@@ -37,7 +38,7 @@ def mock_app_config():
 
 
 @pytest.fixture(autouse=True)
-def override_app_config(mock_app_config):
+def override_app_config(app, mock_app_config):
     app.dependency_overrides[get_config] = lambda: mock_app_config
     yield
     app.dependency_overrides.pop(get_config, None)
@@ -52,14 +53,14 @@ def mock_valkey():
 
 
 @pytest.fixture(autouse=True)
-def override_valkey_connection(mock_valkey):
+def override_valkey_connection(app, mock_valkey):
     app.dependency_overrides[get_valkey_connection] = lambda: mock_valkey
     yield
     app.dependency_overrides.pop(get_valkey_connection)
 
 
 @pytest.fixture
-def override_domain_map():
+def override_domain_map(app):
     def _override(domain_map):
         app.dependency_overrides[get_domain_map] = lambda: domain_map
 
@@ -68,7 +69,7 @@ def override_domain_map():
 
 
 @pytest.fixture
-def override_aaf_domains():
+def override_aaf_domains(app):
     def _override(domains):
         app.dependency_overrides[get_aaf_domains] = lambda: domains
 
@@ -77,5 +78,10 @@ def override_aaf_domains():
 
 
 @pytest.fixture
-def test_client(override_app_config, override_valkey_connection) -> TestClient:
+def app(mock_app_config) -> FastAPI:
+    return create_app(config=mock_app_config)
+
+
+@pytest.fixture
+def test_client(app, override_app_config, override_valkey_connection) -> TestClient:
     return TestClient(app=app)
